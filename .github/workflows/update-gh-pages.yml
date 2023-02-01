@@ -6,6 +6,7 @@ jobs:
   update-gh-pages:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref == 'refs/heads/master' }}
