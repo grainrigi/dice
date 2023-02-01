@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>さいころ</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="1.png" as="image">
+    <link rel="preload" href="2.png" as="image">
+    <link rel="preload" href="3.png" as="image">
+    <link rel="preload" href="4.png" as="image">
+    <link rel="preload" href="5.png" as="image">
+    <link rel="preload" href="6.png" as="image">
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      #app {
+        width: 100%;
+      }
+
+      .app_title {
+        text-align: center;
+        font-size: 24px;
+      }
+      #number_disp {
+        font-size: 64px;
+        text-align: center;
+        margin: 40px 0;
+        height: 64px;
+      }
+      .dice_container {
+        display: flex;
+        justify-content: space-between;
+        width: 120px;
+        margin: 0 auto;
+      }
+      .dice_container img {
+        width: 40px;
+        height: 40px;
+      }
+      #roll {
+        display: block;
+        background-color: #4287f5;
+        color: #fff;
+        width: 180px;
+        margin: 30px auto;
+        border: 0;
+        font-size: 16px;
+        padding: 0.8em;
+        border-radius: 10px;
+      }
+      #roll:hover {
+        background-color: #3770cc;
+        cursor: pointer;
+      }
+      #roll:disabled {
+        background-color: #a8a8a8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1 class="app_title">サイコロ</h1>
+      <p id="number_disp">7</p>
+      <div class="dice_container">
+        <img id="dice1" src="1.png">
+        <img id="dice2" src="6.png">
+      </div>
+      <button id="roll">振る</button>
+    </div>
+
+    <script type="text/javascript" src="https://magicant.github.io/sjavascript/mt.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      function funclinear(stopStep) {
+        return [1, function(step) { return step; }]
+      }
+      function func2x(stopStep) {
+        var a = 2;
+        var b = a * (stopStep * stopStep);
+        return [500, function (step) {
+          return -a * ((step - stopStep) * (step - stopStep)) + b;
+        }];
+      }
+      function funcln() {
+        return [0.13, function (step) {
+          return Math.log(step);
+        }]
+      }
+      $(function() {
+        // init mt
+        var mt = new MersenneTwister();
+        var current = 0;
+        function setDice(dice1, dice2, final) {
+          $('#dice1').attr('src', dice1 + '.png');
+          $('#dice2').attr('src', dice2 + '.png');
+          current = dice1 + dice2;
+        }
+        // rolling animation
+        function roll() {
+          $('#number_disp').css('transition', 'none');
+          $('#number_disp').css('opacity', '0');
+          new Promise(function (resolve) {
+            var stopStep = 60;
+            var step = 0;
+            var prevY = -1.0;
+            var funcparts = funclinear(stopStep);
+            var thresh = funcparts[0];
+            var func = funcparts[1];
+
+            var timer = setInterval(function() {
+              step++;
+              if (step >= stopStep) {
+                clearInterval(timer);
+                resolve();
+                return;
+              }
+              var Y = func(step);
+              if (Y - prevY >= thresh) {
+                prevY = Y;
+                setDice(mt.nextInt(1, 7), mt.nextInt(1, 7));
+              }
+            }, 16);
+          }).then(function () {
+            $('#number_disp').text(current);
+            $('#number_disp').css('transition', 'opacity 0.5s ease-out');
+            $('#number_disp').css('opacity', '1');
+          });
+        }
+
+        $('#roll').on('click', roll);
+      });
+
+    </script>
+  </body>
+</html>
